@@ -683,11 +683,13 @@ didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask delegate:(id <NSU
     };
     
     NSURLConnectionDidFinishLoadingBlock implementationBlock = ^(id <NSURLConnectionDelegate> slf, NSURLConnection *connection) {
-        [self sniffWithoutDuplicationForObject:connection selector:selector sniffingBlock:^{
-            undefinedBlock(slf, connection);
-        } originalImplementationBlock:^{
-            ((void(*)(id, SEL, id))objc_msgSend)(slf, swizzledSelector, connection);
-        }];
+        if (connection) {
+            [self sniffWithoutDuplicationForObject:connection selector:selector sniffingBlock:^{
+                undefinedBlock(slf, connection);
+            } originalImplementationBlock:^{
+                ((void(*)(id, SEL, id))objc_msgSend)(slf, swizzledSelector, connection);
+            }];
+        }
     };
     
     [self replaceImplementationOfSelector:selector withSelector:swizzledSelector forClass:cls withMethodDescription:methodDescription implementationBlock:implementationBlock undefinedBlock:undefinedBlock];
